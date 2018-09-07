@@ -67,6 +67,10 @@ class EconomistClient {
         });
     }
 
+    get is_logged_in() {
+        return Boolean(this.login_result);
+    }
+
     async login(destination) {
         let user_page_response = await this.request({
             url: "https://www.economist.com/user/login",

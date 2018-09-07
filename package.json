@@ -4,31 +4,36 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/launch.js",
     "test": "mocha --exit test/test.js"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/znetstar/economist-audio-downloader"
   },
+  "bin": {
+    "economist-audio-downloader": "bin/economist-audio-downloader"
+  },
   "author": "Zachary Boyd <zachary@zacharyboyd.nyc>",
   "license": "Unlicense",
   "dependencies": {
-    "async": "^2.3.0",
-    "cheerio": "^0.22.0",
-    "dotenv": "^4.0.0",
-    "lodash": "^4.17.4",
+    "cheerio": "^1.0.0-rc.2",
+    "dotenv": "^6.0.0",
+    "fstream": "^1.0.11",
+    "lodash": "^4.17.10",
     "moment": "^2.22.2",
-    "proxy-agent": "^2.0.0",
+    "nconf": "^0.10.0",
+    "proxy-agent": "^3.0.1",
     "qs": "^6.5.2",
     "request": "^2.88.0",
-    "request-promise": "^4.2.2",
     "request-promise-any": "^1.0.5",
     "unzip": "^0.1.11",
-    "winston": "^2.3.1"
+    "winston": "^3.1.0",
+    "yargs": "^12.0.1"
   },
   "devDependencies": {
     "chai": "^4.1.2",
-    "mocha": "^5.2.0"
+    "mocha": "^5.2.0",
+    "mmmagic": "^0.5.1",
+    "del": "^3.0.0"
   }
 }

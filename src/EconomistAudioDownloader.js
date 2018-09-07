@@ -9,11 +9,13 @@ class EconomistAudioDownloader extends EconomistClient {
         super(credentials, proxy_uri, user_agent, cookie_jar);
     }
 
+    static get ISSUE_DATE_FORMAT() { return "MMMM Do, YYYY"; }
+
     async login() {
         return await super.login('audio-edition');
     }
 
-    async list_editions(year) {
+    async list_issues(year) {
         if (!this.login_result || this.login_result.destination !== 'audio-edition') throw new Error("Not logged in.");
 
         year = year || (new Date()).getFullYear();
@@ -23,28 +25,28 @@ class EconomistAudioDownloader extends EconomistClient {
             transform: cheerio_transform
         });
 
-        return $('.audio-cover-image a').get().map((e) => $(e).attr('href').split('/').pop());
+        return $('.audio-cover-image a').get().map((e) => moment($(e).attr('href').split('/').pop())._d);
     }
 
-    async get_edition_page(date) {
+    async get_issue_page(date) {
         if (!this.login_result || this.login_result.destination !== 'audio-edition') throw new Error("Not logged in.");
 
-        let edition_date = date ? moment(date).format('YYYY-MM-DD') : 'latest';
+        let issue_date = date && date !== 'latest' ? moment(date).format('YYYY-MM-DD') : 'latest';
 
         return await this.request({
-            url: `https://www.economist.com/audio-edition/${edition_date}`,
+            url: `https://www.economist.com/audio-edition/${issue_date}`,
             transform: cheerio_transform
         });
     }
 
-    async list_edition_sections(date) {
-        let $ =  await this.get_edition_page(date);
+    async list_issue_sections(date) {
+        let $ =  await this.get_issue_page(date);
 
         return $('.audio-sections a').get().map((e) => { let section = $(e).attr('href').split('_The_Economist_').pop().split('_'); section.shift(); section = section.join('_').split('.').shift(); return section; });
     }
 
     async download_audio_edition(date, section) {
-        let $ = await this.get_edition_page(date);
+        let $ = await this.get_issue_page(date);
 
         let zip_url;
         if (section) {
@@ -57,13 +59,15 @@ class EconomistAudioDownloader extends EconomistClient {
             zip_url = $('.audio-issue-full-download-link a').attr('href');
         }
 
-        let zip_resp = await this.request({
+        let zip_resp = require('request')({
             url: zip_url,
             encoding: null,
-            resolveWithFullResponse: true
+            jar: this.jar,
+            agent: this.agent,
+            headers: this.headers
         });
 
-        return zip_resp.body;
+        return { zip: zip_resp, issue_date: moment($('.issue-date').text(), EconomistAudioDownloader.ISSUE_DATE_FORMAT)._d };
     }
 }
 
