@@ -23,6 +23,10 @@ function EADFactory(nconf) {
 }
 
 async function login(nconf, logs, downloader, stdout) {
+    if (!nconf.get('username') || !nconf.get('password')) {
+        logs.error("No username and/or password given");
+        return 1;
+    }
     if (!stdout)
         logs.debug(`Logging in to user ${downloader.credentials.username}`);
     try {
@@ -45,7 +49,7 @@ async function list_issues(nconf, logs) {
     
     try {
         let issues = await downloader.list_issues(nconf.get('year'));
-        process.stdout.write(issues.map((d) => moment(d).format("YYYY-MM-DD")).join("\n"));
+        console.log(issues.map((d) => moment(d).format("YYYY-MM-DD")).join("\n"));
         return 0;
     } catch (error) {
         logs.error(`Error getting issues for ${nconf.get('year')}: ${error.message}`);
@@ -61,7 +65,7 @@ async function list_issue_sections(nconf, logs) {
     
     try {
         let sections = await downloader.list_issue_sections(nconf.get('issue'));
-        process.stdout.write(sections.join("\n"));
+        console.log(sections.join("\n"));
         return 0;
     } catch (error) {
         logs.error(`Error getting issues for ${nconf.get('issue')}: ${error.message}`);
@@ -74,10 +78,11 @@ async function download(nconf, logs) {
 
     let date = nconf.get('issue');
     let section = nconf.get('section');
-    let sectStr = section ? " section " + section : "";
+    let sectStr = section ? " section \"" + section + "\"" : "";
 
     let output = nconf.get('output');
     let extract = nconf.get('extract');
+    
 
     if (output && extract) {
         logs.error("Cannot download and extract");
@@ -88,7 +93,7 @@ async function download(nconf, logs) {
     if (login_code > 0) return login_code;
 
     if (extract || output)
-        logs.info(`Downloading audio for issue ${date}${ sectStr }`);
+        logs.info(`Downloading audio for issue "${date}"${ sectStr }`);
     try {
         let { zip } = await downloader.download_audio_edition(date, section);
         
@@ -97,7 +102,7 @@ async function download(nconf, logs) {
                 let out = zip.pipe(fs.createWriteStream(output));
 
                 out.on('finish', () => {
-                    logs.info(`Successfully wrote ${date}${sectStr} to "${output}"`);
+                    logs.info(`Successfully wrote "${date}"${sectStr} to "${output}"`);
                     resolve(0);
                 })
 
@@ -106,19 +111,27 @@ async function download(nconf, logs) {
                     resolve(1);
                 });  
             } else if (extract) {
-                let out = zip
-                    .pipe(unzip.Parse())
-                    .pipe(fstream.Writer(extract));
+                try {
+                    if (!fs.existsSync(extract))
+                        fs.mkdirSync(extract);
 
-                out.on('close', () => {
-                    logs.info(`Successfully extracted ${date}${sectStr} to "${extract}"`);
-                    resolve(0);
-                })
+                    let out = zip
+                        .pipe(unzip.Parse())
+                        .pipe(fstream.Writer(extract));
 
-                out.on('error', (err) => {
+                    out.on('close', () => {
+                        logs.info(`Successfully extracted "${date}"${sectStr} to "${extract}"`);
+                        resolve(0);
+                    })
+
+                    out.on('error', (err) => {
+                        logs.error(`Error extracting to "${extract}": ${err.mesage}`);
+                        resolve(1);
+                    });  
+                } catch (err) {
                     logs.error(`Error extracting to "${extract}": ${err.mesage}`);
                     resolve(1);
-                });  
+                }
             } else { // Stdout
                 let out = zip.pipe(process.stdout)
                 out.on('finish', () => {
@@ -132,7 +145,7 @@ async function download(nconf, logs) {
             }
         });
     } catch (error) {
-        logs.error(`Error downloading issue ${date}${sectStr}: ${error.message}`);
+        logs.error(`Error downloading issue "${date}"${sectStr}: ${error.message}`);
         return 1;
     }
 }
@@ -153,6 +166,22 @@ function main () {
         alias: 'q',
         describe: 'Turns logging off',
         default: false
+    })
+    .option('username', {
+        alias: 'u',
+        describe: 'Username to login with'
+    })
+    .option('password', {
+        alias: 'p',
+        describe: 'Password to login with'
+    })
+    .option('config', {
+        alias: 'f',
+        describe: 'A JSON configuration file to read from'
+    })
+    .option('proxy_url', {
+        alias: 'p',
+        describe: 'The url to a proxy that will be used for all requests. SOCKS(4/5), HTTP(S) and PAC accepted.'
     })
     .command([ '$0', 'download [issue]' ], 'Downloads a zip file containing the audio edition for a given issue', (yargs) => {
         yargs
@@ -216,6 +245,9 @@ function main () {
             new winston.transports.Console({ silent: nconf.get('quiet') })
         ]
     });
+
+    if (nconf.get('config'))
+        nconf.file({ file: nconf.get('config') });
 
     command(nconf, logs).then((code) => process.exit(code));
 }

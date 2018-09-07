@@ -4,10 +4,6 @@ ADD . /app
 
 WORKDIR /app
 
-VOLUME /data
+RUN npm install --only=production
 
-ENV OUTPUT /data
-
-RUN npm install
-
-CMD npm start
+ENTRYPOINT [ "bin/economist-audio-downloader" ]

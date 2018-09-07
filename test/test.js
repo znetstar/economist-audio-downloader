@@ -26,7 +26,7 @@ describe('EconomistClient', function () {
     
     describe('login(destination)', function () {
         let code_obj;
-        let destination = 'audio-issue';
+        let destination = 'audio-edition';
         let client = EconomistClientFactory();
 
         it('should login successfully', function () {
@@ -58,8 +58,8 @@ describe('EconomistAudioDownloader', function () {
             assert.hasAllKeys(code_obj, [ "code", "destination", "state" ], "Response does not contain the required fields");
         });
 
-        it('the destination shoud be "audio-issue"', function () {
-            assert.equal("audio-issue", code_obj.destination);
+        it('the destination shoud be "audio-edition"', function () {
+            assert.equal("audio-edition", code_obj.destination);
         });       
     });
 
@@ -86,7 +86,7 @@ describe('EconomistAudioDownloader', function () {
 
         it('all issues should be from last year', function () {
             assert.isTrue(
-                issues.every((date) => date.substr(0, 4) === last_year.toString())
+                issues.every((date) => new Date(date).getFullYear() === last_year)
                 , "Not all of the issues were from last year"
             );
         });
@@ -147,7 +147,7 @@ describe('EconomistAudioDownloader', function () {
         });
     });
     
-    describe('download_audio_issue(date, section)', function () {
+    describe('download_audio_edition(date, section)', function () {
         let client = EADFactory();
         let zip_obj;
 
@@ -187,7 +187,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     describe('login', function () {
         let downloader = EADFactory();
         it('should successfully login', function () {
-            return login(nconf_factory(), logs_factory(), downloader);
+            return login(nconf_factory({ username, password, proxy_url }), logs_factory(), downloader);
         });
 
         it('downloader should be logged in', function () {
