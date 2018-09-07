@@ -29,6 +29,8 @@ describe('EconomistClient', function () {
         let destination = 'audio-edition';
         let client = EconomistClientFactory();
 
+        this.timeout(60 * 1000 * 3);
+
         it('should login successfully', function () {
             this.timeout(LOGIN_TIMEOUT);
             return client.login(destination).then((c) => code_obj = c);
@@ -48,6 +50,8 @@ describe('EconomistAudioDownloader', function () {
     
     describe('login()', function () {
        let client = EADFactory();
+
+       this.timeout(60 * 1000 * 3);
        
        it('should login successfully', function () {
             this.timeout(LOGIN_TIMEOUT);
@@ -69,6 +73,8 @@ describe('EconomistAudioDownloader', function () {
         let client = EADFactory();
         let issues;
         const last_year = (new Date()).getFullYear() - 1;
+
+        this.timeout(60 * 1000 * 3);
 
         before('login', function () {
             this.timeout(LOGIN_TIMEOUT);
@@ -107,8 +113,9 @@ describe('EconomistAudioDownloader', function () {
         let client = EADFactory();
         let $; 
 
+        this.timeout(60 * 1000 * 3);
+
         before('login', function () {
-            this.timeout(LOGIN_TIMEOUT);
             return client.login();
         });
 
@@ -129,6 +136,9 @@ describe('EconomistAudioDownloader', function () {
     describe('list_issue_sections(date)', function () {
         let client = EADFactory();
         let sections;
+
+        this.timeout(60 * 1000 * 3);
+
         before('login', function () {
             this.timeout(LOGIN_TIMEOUT);
             return client.login();
@@ -151,6 +161,8 @@ describe('EconomistAudioDownloader', function () {
         let client = EADFactory();
         let zip_obj;
 
+        this.timeout(60 * 1000 * 3);
+
         before('login', function () {
             this.timeout(LOGIN_TIMEOUT);
             return client.login();
@@ -158,7 +170,7 @@ describe('EconomistAudioDownloader', function () {
 
         it('should download the "Introduction" section from the last issue of last year', function () {
             this.timeout(DOWNLOAD_TIMEOUT);
-            return client.download_audio_issue(last_year_last_issue, 'Introduction')
+            return client.download_audio_edition(last_year_last_issue, 'Introduction')
                 .then((z) => zip_obj = z);
         });
 
@@ -185,6 +197,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     const logs_factory = () => winston.createLogger({ silent: true, transports: [ new (winston.transports.Console)({silent: true}) ] });
 
     describe('login', function () {
+        this.timeout(60 * 1000 * 3);
         let downloader = EADFactory();
         it('should successfully login', function () {
             return login(nconf_factory({ username, password, proxy_url }), logs_factory(), downloader);
@@ -196,6 +209,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     });
 
     describe('download [date] [section] [output] [extract]', function () {
+        this.timeout(60 * 1000 * 3);
         it('should exit with a positive exit code', function () {
             return download(nconf_factory({
                 extract: true,
@@ -207,6 +221,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     });
 
     describe('download [issue] [section] [output]', function () {
+        this.timeout(60 * 1000 * 3);
         let tmp_dir, zip_path;
         before('create temp dir', function () {
             tmp_dir = fs.mkdtempSync("ead-test");
@@ -245,6 +260,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     });
 
     describe('download [issue] [section] [extract]', function () {
+        this.timeout(60 * 1000 * 3);
         let tmp_dir;
         before('create temp dir', function () {
             tmp_dir = fs.mkdtempSync("ead-test");
@@ -294,6 +310,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     });
 
     describe('list-issues year', function () {
+        this.timeout(60 * 1000 * 3);
         it('should retrieve the issues for a given year and exit with no error code', function () {
             this.timeout(60000);
             return list_issues(nconf_factory({ year: (new Date()).getFullYear(), username, password, proxy_url }), logs_factory());
@@ -301,6 +318,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     });
 
     describe('list-issue-sections issue', function () {
+        this.timeout(60 * 1000 * 3);
         it('should retrieve the sections for a given issue and exit with no error code', function () {
             this.timeout(60000);
             return list_issue_sections(nconf_factory({ issue: 'latest', username, password, proxy_url }), logs_factory());
