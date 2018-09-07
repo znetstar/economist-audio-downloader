@@ -95,7 +95,7 @@ async function download(nconf, logs) {
     if (extract || output)
         logs.info(`Downloading audio for issue "${date}"${ sectStr }`);
     try {
-        let { zip } = await downloader.download_audio_edition(date, section);
+        let { zip, issue_date } = await downloader.download_audio_edition(date, section);
         
         return new Promise((resolve) => {
             if (output) {
@@ -114,6 +114,13 @@ async function download(nconf, logs) {
                 try {
                     if (!fs.existsSync(extract))
                         fs.mkdirSync(extract);
+
+                    let subdir = nconf.get('subdir');
+                    if (subdir) {
+                        extract = path.join(extract, moment(issue_date).format("YYYY-MM-DD"));
+                        if (!fs.existsSync(extract))
+                            fs.mkdirSync(extract);
+                    }
 
                     let out = zip
                         .pipe(unzip.Parse())
@@ -202,6 +209,10 @@ function main () {
             .option('extract', {
                 alias: 'e',
                 describe: "Extracts the zip file to a given path, creating it if it doesn't exist. Cannot be used with '--output'"
+            })
+            .option('subdir', {
+                alias: 'b',
+                describe: 'Will extract to a subdirectory named the date of the issue (e.g. $extract/YYYY-MM-DD)'
             });
     }, (argv) => { command = download; })
     .command('list-issues <year>', "Lists all issues for a given year", (yargs) => {
