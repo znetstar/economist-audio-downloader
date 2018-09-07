@@ -4,3 +4,4 @@ Dockerfile
 .env
 .vscode
 .gitignore
+.travis.yml
