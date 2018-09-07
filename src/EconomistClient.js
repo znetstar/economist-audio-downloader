@@ -4,7 +4,6 @@ const cheerio = require('cheerio');
 
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
 const AUTH_DOMAIN = 'https://authenticate.economist.com';
-const USER_PAGE_URL = 'https://www.economist.com/user/login?destination=audio-edition';
 const cheerio_transform = (body) => cheerio.load(body);
 const qs = require('qs');
 const url = require('url');
@@ -145,10 +144,11 @@ class EconomistClient {
         });
 
         let success_url = login_callback_resp.headers['location'];
+        let resp = this.login_result = qs_parse(success_url);
 
         await this.request({ url: success_url });
-
-        return qs_parse(success_url);
+        
+        return resp;
     }
 }
 
