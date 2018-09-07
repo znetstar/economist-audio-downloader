@@ -10,13 +10,17 @@ const moment = require('moment');
 
 var logs, factory;
 
-const env_whitelist = [
+var env_whitelist = [
     "log_level",
     "economist_username",
     "economist_password",
+    "username",
+    "password",
     "proxy_url",
     "http_proxy"
-].map((e) => e.toUpperCase());
+]
+
+env_whitelist = env_whitelist.concat(env_whitelist.map((e) => e.toUpperCase()));
 
 function EADFactory(nconf) {
     return new EconomistAudioDownloader({ username: nconf.get('username'), password: nconf.get('password') }, nconf.get('proxy_url'), nconf.get('user_agent'));
@@ -246,7 +250,6 @@ function main () {
             }
         })
         .defaults(require('./default_config'));
-
 
     logs = winston.createLogger({
         level: nconf.get('log_level'),
