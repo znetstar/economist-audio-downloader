@@ -14,7 +14,7 @@
     "economist-audio-downloader": "bin/economist-audio-downloader"
   },
   "author": "Zachary Boyd <zachary@zacharyboyd.nyc>",
-  "license": "Unlicense",
+  "license": "CC0",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "dotenv": "^6.0.0",
