@@ -5,4 +5,4 @@ Dockerfile
 .vscode
 .gitignore
 .travis.yml
-doc
+docs

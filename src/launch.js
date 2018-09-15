@@ -1,38 +1,59 @@
-const nconf = require('nconf');
-const winston = require('winston');
+
 const path = require('path');
 const fs = require('fs');
-const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), 'utf8'));
-const { EconomistAudioDownloader } = require('./');
+
+const {Provier} = require('nconf');
+const winston = require('winston');
 const unzip = require('unzip');
 const fstream = require('fstream');
 const moment = require('moment');
 
-var logs, factory;
+const { EconomistAudioDownloader } = require('./');
 
-var env_whitelist = [
-    "log_level",
-    "economist_username",
-    "economist_password",
-    "username",
-    "password",
-    "proxy_url",
-    "http_proxy"
-]
+const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), 'utf8'));
 
-env_whitelist = env_whitelist.concat(env_whitelist.map((e) => e.toUpperCase()));
+var logs, nconf;
 
+/**
+ * The environment variables that can be used to configure the application.
+ * @type {string[]}
+ * @constant
+ * @default
+ */
+const env_whitelist = [
+    "LOG_LEVEL",
+    "ECONOMIST_USERNAME",
+    "ECONOMIST_PASSWORD",
+    "USERNAME",
+    "PASSWORD",
+    "PROXY_URL",
+    "HTTP_PROXY"
+];
+
+/**
+ * Creates an {@link EconomistAudioDownloader} instance with the application configuration.
+ * @param {Provider} nconf - Nconf instance to use.
+ * @returns {EconomistAudioDownloader}
+ * @private
+ */
 function EADFactory(nconf) {
     return new EconomistAudioDownloader({ username: nconf.get('username'), password: nconf.get('password') }, nconf.get('proxy_url'), nconf.get('user_agent'));
 }
 
-async function login(nconf, logs, downloader, stdout) {
+/**
+ * Used by all commands to log into the user account.
+ * @param {Provider} nconf - The nconf instance.
+ * @param {Logger} logs - The winston logger.
+ * @param {EconomistAudioDownloader} downloader - The `EconomistAudioDownloader` instance.
+ * @async
+ * @returns {Promise<number>} - Returns the exit code.
+ */
+async function login(nconf, logs, downloader) {
     if (!nconf.get('username') || !nconf.get('password')) {
         logs.error("No username and/or password given");
         return 1;
     }
-    if (!stdout)
-        logs.debug(`Logging in to user ${downloader.credentials.username}`);
+    logs.debug(`Logging in to user ${downloader.credentials.username}`);
     try {
         await downloader.login();
         return 0;
@@ -44,7 +65,13 @@ async function login(nconf, logs, downloader, stdout) {
 
 }
 
-
+/**
+ * Lists issues in a year
+ * @param {Provider} nconf - The nconf instance.
+ * @param {Logger} logs - The winston logger.
+ * @async
+ * @returns {Promise<number>} - Returns the exit code.
+ */
 async function list_issues(nconf, logs) {
     let downloader = EADFactory(nconf);
 
@@ -61,10 +88,17 @@ async function list_issues(nconf, logs) {
     }
 }
 
+/**
+ * Lists sections in an issue
+ * @param {Provider} nconf - The nconf instance.
+ * @param {Logger} logs - The winston logger.
+ * @async
+ * @returns {Promise<number>} - Returns the exit code.
+ */
 async function list_issue_sections(nconf, logs) {
     let downloader = EADFactory(nconf);
 
-    let login_code = await login(nconf, logs, downloader, !(nconf.get('output') || nconf.get('extract')));
+    let login_code = await login(nconf, logs, downloader);
     if (login_code > 0) return login_code;
     
     try {
@@ -77,6 +111,13 @@ async function list_issue_sections(nconf, logs) {
     }
 }
 
+/**
+ * Downloads an issue writing either to a file or stdout.
+ * @param {Provider} nconf - The nconf instance.
+ * @param {Logger} logs - The winston logger.
+ * @async
+ * @returns {Promise<number>} - Returns the exit code.
+ */
 async function download(nconf, logs) {
     let downloader = EADFactory(nconf);
 
@@ -92,6 +133,9 @@ async function download(nconf, logs) {
         logs.error("Cannot download and extract");
         return 1;
     }
+
+    if (!(nconf.get('output') || nconf.get('extract')))
+        logs.silent = true;
 
     let login_code = await login(nconf, logs, downloader);
     if (login_code > 0) return login_code;
@@ -161,7 +205,12 @@ async function download(nconf, logs) {
     }
 }
 
-function main () {
+/**
+ * Main function for the application.
+ * @async
+ * @returns {Promise} - Returns the exit code.
+ */
+async function main () {
     var command;
 
     const yargs = require('yargs')
@@ -236,10 +285,12 @@ function main () {
             });
     }, (argv) => { command = list_issue_sections; })
 
+    nconf = new Provider();
+
     nconf
         .argv(yargs)
         .env({
-            whitelist: env_whitelist,
+            whitelist: env_whitelist.concat(env_whitelist.map((e) => e.toLowerCase())),
             parseValues: true,
             separator: '__',
             transform: (obj) => {
@@ -263,7 +314,18 @@ function main () {
     if (nconf.get('config'))
         nconf.file({ file: nconf.get('config') });
 
-    command(nconf, logs).then((code) => process.exit(code));
+    let code = await command(nconf, logs);
+    process.exit(code);
 }
 
-module.exports = { main, login, download, list_issues, list_issue_sections };
+/**
+ * This module contains the command-line logic for the application.
+ * @module economist-audio-downloader/launch
+ */
+module.exports = { 
+    main, 
+    login, 
+    download, 
+    list_issues, 
+    list_issue_sections
+};

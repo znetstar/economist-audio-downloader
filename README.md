@@ -4,7 +4,7 @@ A tool for downloading the audio edition of The Economist. Requires an active su
 
 [![NPM](https://nodei.co/npm/economist-audio-downloader.png)](https://nodei.co/npm/economist-audio-downloader/)
 
-[![Build Status](https://travis-ci.org/znetstar/economist-audio-downloader.svg?branch=master)](https://travis-ci.org/znetstar/economist-audio-downloader)
+[![Build Status](https://travis-ci.org/znetstar/economist-audio-downloader.svg?branch=master)](https://travis-ci.org/znetstar/economist-audio-downloader) [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fznetstar%2Feconomist-audio-downloader.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fznetstar%2Feconomist-audio-downloader?ref=badge_shield)
 
 This package contains a command line tool `economist-audio-downloader` as well two classes which can be used to download the publication programmatically.
 
@@ -63,6 +63,10 @@ Example:
             ...
         });
 ```
+
+### Documentation
+
+To generate API documentation run `npm run docs`. An online version of the documentation [is available here](https://economist-audio-downloader.docs.zacharyboyd.nyc).
 
 ### Tests
 

@@ -2,75 +2,133 @@ const request = require('request-promise-any');
 const ProxyAgent = require('proxy-agent');
 const cheerio = require('cheerio');
 
+const Auth0FieldEncoder = require('./Auth0FieldEncoder');
+
+/**
+ * Default user agent to be used with each request.
+ * 
+ * @constant 
+ * @type {string}
+ * @default
+ */
 const DEFAULT_USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36';
+
+/**
+ * The domain for the authentication endpoints.
+ * 
+ * @constant 
+ * @type {string}
+ * @default
+ */
 const AUTH_DOMAIN = 'https://authenticate.economist.com';
-const cheerio_transform = (body) => cheerio.load(body);
+
+/**
+ * Returns a {@link https://bit.ly/2hVpK3n|cheerio} object (`$`) for the given HTML.
+ * @param {string} body - The body of the HTTP response.
+ * @returns {any} - {@link https://bit.ly/2hVpK3n|cheerio} object.
+ * @private
+ */
+function cheerio_transform (body) { return cheerio.load(body); }
 const qs = require('qs');
 const url = require('url');
 const _ =  require('lodash');
 
-const login_form_base = Object.freeze({
+/**
+ * Default form that will be POSTed during login.
+ * @constant
+ * @default
+ * @type {object}
+ */
+const LOGIN_FORM_BASE = Object.freeze({
 	"tenant": "theeconomist",
 	"_intstate": "deprecated",
 	"connection": "Drupal"
 });
 
-const qs_parse = (u) => qs.parse(url.parse(u).query);
+/**
+ * Parses the query string of a url and returns an object
+ * @param {string} u - URL to parse
+ * @returns {object} - Object with query string keys and values
+ * @private
+ */
+function qs_parse (u) { return qs.parse(url.parse(u).query); }
 
-const Auth0FieldEncoder = {
-    l: Object.freeze(["A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9","+","/"]),
-    c: function (e,t,n) {
-        let { l } = Auth0FieldEncoder;
-        for (var r, o = [], i = t; i < n; i += 3)
-            r = (e[i] << 16 & 16711680) + (e[i + 1] << 8 & 65280) + (255 & e[i + 2]),
-            o.push(l[(a = r) >> 18 & 63] + l[a >> 12 & 63] + l[a >> 6 & 63] + l[63 & a]);
-        var a;
-        return o.join("")
-    },
-    t: function (e) {
-        let { c, l } = Auth0FieldEncoder;
-        for (var t, n = e.length, r = n % 3, o = "", i = [], a = 0, s = n - r; a < s; a += 16383)
-            i.push(c(e, a, s < a + 16383 ? s : a + 16383));
-        return 1 === r ? (t = e[n - 1],
-        o += l[t >> 2],
-        o += l[t << 4 & 63],
-        o += "==") : 2 === r && (t = (e[n - 2] << 8) + e[n - 1],
-        o += l[t >> 10],
-        o += l[t >> 4 & 63],
-        o += l[t << 2 & 63],
-        o += "="),
-        i.push(o),
-        i.join("")
-    },
-    encode: function (e) {
-        let { t } = Auth0FieldEncoder;
-        return t(function(e) {
-            for (var t = new Array(e.length), n = 0; n < e.length; n++)
-                t[n] = e.charCodeAt(n);
-            return t
-        }(e)).replace(/\+/g, "-").replace(/\//g, "_")
-    }
-};
+/**
+ * This object contains the credentials for logging into the economist.com website.
+ * @typedef {Object} Credentials
+ * @property {string} username - The emaill address of the economist.com account.
+ * @property {string} password - The password of the economist.com account.
+ */
 
+/**
+ * The class contains methods for interacting with economist.com.
+ * 
+ */
 class EconomistClient {
+    /**
+     * Creates an `EconomistClient` instance.
+     * @param {Credentials} credentials - The credentials for the economist.com account. 
+     * @param {string} [proxy_url] - The URL to a proxy to use for all requests. Is passed to {@link https://bit.ly/2Qz8vSj|proxy-agent}.
+     * @param {string} [user_agent=DEFAULT_USER_AGENT] - The User-Agent to use for all requests.
+     * @param {CookieJar} [cookie_jar] - A {@link https://bit.ly/2NfUWcs|tough-cookie} compatible CookieJar to use for all requests.
+     */
     constructor(credentials, proxy_url, user_agent, cookie_jar) {
+        /**
+         * The credentials for the economist.com account. 
+         * @type {Credentials}
+         */
         this.credentials = credentials;
-        let agent = this.agent = proxy_url ? new ProxyAgent(proxy_url) : void(0);
-        let headers = this.headers = {
+        /**
+         * The agent for each request.
+         * @type {any}
+         */
+        this.agent = proxy_url ? new ProxyAgent(proxy_url) : void(0);
+        /**
+         * The headers for each request.
+         * @type {Object}
+         */
+        this.headers = {
             'User-Agent': user_agent || DEFAULT_USER_AGENT
         };
-        let jar = this.jar = request.jar(cookie_jar);
+        /**
+         * The `request.jar()` store of cookies for each request
+         * @type {RequestJar}
+         */
+        this.jar = request.jar(cookie_jar);
+         /**
+         * The {@link https://bit.ly/2MAgZVU|request-promise-any} instance for each request.
+         * @type {Object}
+         */       
         this.request = request.defaults({
-            jar,
-            agent,
-            headers
+            jar: this.jar,
+            agent: this.agent,
+            headers: this.headers
         });
     }
 
+    /**
+     * Indicates if the user is logged in.
+     * @returns {boolean}
+     */
     get is_logged_in() {
         return Boolean(this.login_result);
     }
 
+    /**
+     * This object is returned by economist.com after successfully logging in.
+     * 
+     * @typedef {Object} LoginResponse
+     * @property {string} state
+     * @property {string} code - An access token of some sort.
+     * @property {string} destination - Where to redirect to after logging in.
+     */
+
+    /**
+     * Signs into the economist.com account with the provided credentials.
+     * @param {string} [destination] - What section of the site to return to after logging in.
+     * @returns {Promise<LoginResponse>}
+     * @async
+     */
     async login(destination) {
         let user_page_response = await this.request({
             url: "https://www.economist.com/user/login",
@@ -105,7 +163,7 @@ class EconomistClient {
         let cookies = this.jar.getCookies(AUTH_DOMAIN+'/usernamepassword/login');
         let _csrf = cookies.filter((c) => c.key === '_csrf')[0].value;
 
-        let login_form = _.extend(_.clone(login_form_base), { 
+        let login_form = _.extend(_.clone(LOGIN_FORM_BASE), { 
             _csrf, 
             state, 
             client_id,
@@ -148,12 +206,21 @@ class EconomistClient {
         });
 
         let success_url = login_callback_resp.headers['location'];
-        let resp = this.login_result = qs_parse(success_url);
+        /**
+         * The login response.
+         *  
+         * @type {LoginResponse}
+         */
+        this.login_result = qs_parse(success_url);
 
         await this.request({ url: success_url });
         
-        return resp;
+        return this.login_result;
     }
 }
 
+/**
+ * This module contains the {@link EconomistClient} class
+ * @module economist-audio-downloader/EconomistClient
+ */
 module.exports = EconomistClient;

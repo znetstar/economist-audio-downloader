@@ -1,6 +1,11 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [1.0.4] - 2018-09-15
+
+### Added
+- Adds documentation. To generate docs run `npm run docs`. They will be available under `docs/`.
+
 ## [1.0.3] - 2018-09-12
 ### Changed 
 - Changed license to CC0

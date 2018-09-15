@@ -5,8 +5,8 @@ module.exports = function(grunt) {
             dist : {
                 src: ['src/*.js', 'test/*.js', 'README.md'],
                 options: {
-                    destination : 'doc',
-                       template : "node_modules/jsdoc-sphinx/template"
+                    destination : 'docs',
+                    template : "node_modules/docdash"
                 }
             }
         }
@@ -16,5 +16,5 @@ module.exports = function(grunt) {
     
     grunt.registerTask('default', []);
 
-    grunt.registerTask('doc', ['jsdoc']);
+    grunt.registerTask('docs', ['jsdoc']);
 };
