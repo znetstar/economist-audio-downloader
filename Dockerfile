@@ -2,8 +2,6 @@ FROM node:10-slim
 
 ENV NODE_ENV production
 
-ENV NODE_ENV production
-
 ADD . /app
 
 WORKDIR /app
