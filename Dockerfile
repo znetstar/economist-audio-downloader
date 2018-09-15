@@ -2,10 +2,12 @@ FROM node:10-slim
 
 ENV NODE_ENV production
 
-ADD . /app
-
 WORKDIR /app
 
+ADD package.json /app/package.json
+
 RUN npm install
+
+ADD . /app
 
 ENTRYPOINT [ "bin/economist-audio-downloader" ]

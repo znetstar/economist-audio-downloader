@@ -2,7 +2,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const {Provier} = require('nconf');
+const {Provider} = require('nconf');
 const winston = require('winston');
 const unzip = require('unzip');
 const fstream = require('fstream');
@@ -59,6 +59,7 @@ async function login(nconf, logs, downloader) {
         return 0;
     }
     catch (error) {
+        logs.silent = false;
         logs.error(`An error occured logging in: ${error.message}`);
         return 1;
     }
@@ -240,7 +241,7 @@ async function main () {
         describe: 'A JSON configuration file to read from'
     })
     .option('proxy_url', {
-        alias: 'p',
+        alias: 'x',
         describe: 'The url to a proxy that will be used for all requests. SOCKS(4/5), HTTP(S) and PAC accepted.'
     })
     .command([ '$0', 'download [issue]' ], 'Downloads a zip file containing the audio edition for a given issue', (yargs) => {
