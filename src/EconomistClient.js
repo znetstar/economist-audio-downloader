@@ -176,35 +176,18 @@ class EconomistClient {
 
         let auth_0_client = Auth0FieldEncoder.encode(JSON.stringify(telemetryData));
         
-        let $;
-        try {
-            $ = await this.request({
-                url: AUTH_DOMAIN+'/usernamepassword/login',
-                body: JSON.stringify(login_form),
-                transform: cheerio_transform,
-                method: "POST",
-                headers: _.extend(_.clone(this.headers), {
-                    "Auth0-Client": auth_0_client,
-                    Referer: login_page_url,
-                    'Content-Type': 'application/json'
-                })
-            });
-        } catch (error) {
-            try {
-                if (!error.statusCode || !error.error) throw error;
+        let $ = await this.request({
+            url: AUTH_DOMAIN+'/usernamepassword/login',
+            body: JSON.stringify(login_form),
+            transform: cheerio_transform,
+            method: "POST",
+            headers: _.extend(_.clone(this.headers), {
+                "Auth0-Client": auth_0_client,
+                Referer: login_page_url,
+                'Content-Type': 'application/json'
+            })
+        });
 
-                let status = error.statusCode
-                let errorObj = JSON.parse(error.error);
-                if (!errorObj.description) throw error;
-                
-                let descObj = JSON.parse(errorObj.description);
-                
-                if (!descObj.dev_message) throw error;
-                let errorMsg = descObj.dev_message;
-            } catch (parseError) { throw error; }
-            
-            throw new Error(`HTTP ${status} - ${errorMsg}`);
-        }
 
         let jwt_form = {};
         $('form[name="hiddenform"] input[name]').get().forEach((element) => jwt_form[$(element).attr('name')] = $(element).val());
