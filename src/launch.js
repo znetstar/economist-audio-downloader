@@ -147,8 +147,7 @@ async function download(argv, nconf, logs) {
     let downloader = EADFactory(nconf);
 
     let date = argv[0] || 'latest';
-    console.log(argv)
-
+    
     let section = nconf.get('section');
     let sectStr = section ? " section \"" + section + "\"" : "";
 

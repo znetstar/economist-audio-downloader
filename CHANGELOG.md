@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.0.8] - 2018-09-15
+## [1.0.9] - 2018-09-15
 
 ### Changed
 - Fixes bug with position arguments

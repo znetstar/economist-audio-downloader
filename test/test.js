@@ -204,7 +204,7 @@ describe('EconomistAudioDownloader', function () {
 describe('economist-audio-downloader [command] [arguments]', function () {
     const { login, download, list_issues, list_issue_sections } = launch;
     const { username, password } = credentials;
-    let proxy_url = proxy;
+    let proxyUrl = proxy;
     const nconf_factory = (obj) => require('nconf').overrides(obj);
     const logs_factory = () => winston.createLogger({ silent: true, transports: [ new (winston.transports.Console)({silent: true}) ] });
 
@@ -212,7 +212,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
         this.timeout(GLOBAL_TIMEOUT);
         let downloader = EADFactory();
         it('should successfully login', async function () {
-            await login(nconf_factory({ username, password, proxy_url }), logs_factory(), downloader);
+            await login(nconf_factory({ username, password, proxyUrl }), logs_factory(), downloader);
         });
 
         it('downloader should be logged in', function () {
@@ -223,7 +223,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
     describe('download [date] [section] [output] [extract]', function () {
         this.timeout(GLOBAL_TIMEOUT);
         it('should exit with a positive exit code', async function () {
-            await download([null,'latest'], nconf_factory({
+            await download(['latest'], nconf_factory({
                 extract: true,
                 output: true
             }), logs_factory()).then((code) => {
@@ -245,12 +245,12 @@ describe('economist-audio-downloader [command] [arguments]', function () {
                 output: zip_path,
                 issue: "latest",
                 section: "Introduction",
-                proxy_url,
+                proxyUrl,
                 username,
                 password
             });
             this.timeout(DOWNLOAD_TIMEOUT);
-            await download([null, 'latest'], nconf, logs_factory()).then((code) => {
+            await download(['latest'], nconf, logs_factory()).then((code) => {
                 assert.equal(0, code, "Exit code was not zero");
             });
         });
@@ -279,12 +279,12 @@ describe('economist-audio-downloader [command] [arguments]', function () {
             let nconf = nconf_factory({
                 extract: tmp_dir,
                 section: "Introduction",
-                proxy_url,
+                proxyUrl,
                 username,
                 password
             });
             this.timeout(DOWNLOAD_TIMEOUT);
-            await download([null, "latest"], nconf, logs_factory()).then((code) => {
+            await download(["latest"], nconf, logs_factory()).then((code) => {
                 assert.equal(0, code, "Exit code was not zero");
             });
         });
@@ -315,7 +315,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
         this.timeout(GLOBAL_TIMEOUT);
         it('should retrieve the issues for a given year and exit with no error code', async function () {
             this.timeout(60000);
-            await list_issues([null, (new Date()).getFullYear()], nconf_factory({ username, password, proxy_url }), logs_factory());
+            await list_issues([null, (new Date()).getFullYear()], nconf_factory({ username, password, proxyUrl }), logs_factory());
         });
     });
 
@@ -323,7 +323,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
         this.timeout(GLOBAL_TIMEOUT);
         it('should retrieve the sections for a given issue and exit with no error code', async function () {
             this.timeout(60000);
-            await list_issue_sections([null, 'latest'], nconf_factory({ username, password, proxy_url }), logs_factory());
+            await list_issue_sections([null, 'latest'], nconf_factory({ username, password, proxyUrl }), logs_factory());
         });
     });
 });
