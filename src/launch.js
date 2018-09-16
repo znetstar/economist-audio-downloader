@@ -311,7 +311,7 @@ async function main () {
     nconf
         .argv(yargs)
         .env({
-            whitelist: env_whitelist.concat(env_whitelist.map((e) => e.toLowerCase())),
+            whitelist: env_whitelist.concat(env_whitelist.map(env_to_config)),
             parseValues: true,
             separator: '__',
             transform: (obj) => {
