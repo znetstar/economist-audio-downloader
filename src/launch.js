@@ -93,18 +93,20 @@ async function login(nconf, logs, downloader) {
  * @async
  * @returns {Promise<number>} - Returns the exit code.
  */
-async function list_issues(nconf, logs) {
+async function list_issues(argv, nconf, logs) {
     let downloader = EADFactory(nconf);
+
+    let year = argv[1];
 
     let login_code = await login(nconf, logs, downloader);
     if (login_code > 0) return login_code;
     
     try {
-        let issues = await downloader.list_issues(nconf.get('year'));
+        let issues = await downloader.list_issues(year);
         console.log(issues.map((d) => moment(d).format("YYYY-MM-DD")).join("\n"));
         return 0;
     } catch (error) {
-        logs.error(`Error getting issues for ${nconf.get('year')}: ${error.message}`);
+        logs.error(`Error getting issues for ${year}: ${error.message}`);
         return 1;
     }
 }
@@ -116,18 +118,20 @@ async function list_issues(nconf, logs) {
  * @async
  * @returns {Promise<number>} - Returns the exit code.
  */
-async function list_issue_sections(nconf, logs) {
+async function list_issue_sections(argv, nconf, logs) {
     let downloader = EADFactory(nconf);
 
     let login_code = await login(nconf, logs, downloader);
     if (login_code > 0) return login_code;
+
+    let issue = argv[1];
     
     try {
-        let sections = await downloader.list_issue_sections(nconf.get('issue'));
+        let sections = await downloader.list_issue_sections(issue);
         console.log(sections.join("\n"));
         return 0;
     } catch (error) {
-        logs.error(`Error getting issues for ${nconf.get('issue')}: ${error.message}`);
+        logs.error(`Error getting issues for ${issue}: ${error.message}`);
         return 1;
     }
 }
@@ -139,10 +143,11 @@ async function list_issue_sections(nconf, logs) {
  * @async
  * @returns {Promise<number>} - Returns the exit code.
  */
-async function download(nconf, logs) {
+async function download(argv, nconf, logs) {
     let downloader = EADFactory(nconf);
 
-    let date = nconf.get('issue');
+    let date = argv[1] || 'latest';
+
     let section = nconf.get('section');
     let sectStr = section ? " section \"" + section + "\"" : "";
 
@@ -176,6 +181,7 @@ async function download(nconf, logs) {
                 })
 
                 out.on('error', (err) => {
+                    logs.silent = false;
                     logs.error(`Error writing to "${output}": ${err.mesage}`);
                     resolve(1);
                 });  
@@ -201,10 +207,12 @@ async function download(nconf, logs) {
                     })
 
                     out.on('error', (err) => {
+                        logs.silent = false;
                         logs.error(`Error extracting to "${extract}": ${err.mesage}`);
                         resolve(1);
                     });  
                 } catch (err) {
+                    logs.silent = false;
                     logs.error(`Error extracting to "${extract}": ${err.mesage}`);
                     resolve(1);
                 }
@@ -215,12 +223,14 @@ async function download(nconf, logs) {
                 })
 
                 out.on('error', (err) => {
+                    logs.silent = false;
                     logs.error(`Error writing to stdout: ${err.mesage}`);
                     resolve(1);
                 });         
             }
         });
     } catch (error) {
+        logs.silent = false;
         logs.error(`Error downloading issue "${date}"${sectStr}: ${error.message}`);
         return 1;
     }
@@ -267,7 +277,6 @@ async function main () {
     .command([ '$0', 'download [issue]' ], 'Downloads a zip file containing the audio edition for a given issue', (yargs) => {
         yargs
             .positional('issue', {
-                alias: 'i',
                 describe: 'Date of the issue to download. Defaults to "latest"',
                 demand: true,
                 default: 'latest'
@@ -288,23 +297,25 @@ async function main () {
                 alias: 'b',
                 describe: 'Will extract to a subdirectory named the date of the issue (e.g. $extract/YYYY-MM-DD)'
             });
-    }, (argv) => { command = download; })
+    }, (argv) => { 
+        command = download.bind(null, argv._);
+     })
     .command('list-issues <year>', "Lists all issues for a given year", (yargs) => {
         yargs
             .positional('year', {
-                alias: 'y',
                 demand: true,
                 describe: 'Year to list issues for'
             });
-    }, (argv) => { command = list_issues; })
+    }, (argv) => { 
+        command = list_issues.bind(null, argv._);
+    })
     .command('list-issue-sections <issue>', "Lists all issues for a given year", (yargs) => {
         yargs
             .positional('issue', {
-                alias: 'i',
                 demand: true,
                 describe: 'Issue to list sections for'
             });
-    }, (argv) => { command = list_issue_sections; })
+    }, (argv) => { command = list_issue_sections.bind(null, argv._); })
 
     nconf = new Provider();
 

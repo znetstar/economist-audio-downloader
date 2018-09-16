@@ -282,14 +282,13 @@ describe('economist-audio-downloader [command] [arguments]', function () {
         it('should download the "Introduction" section of latest issue successfully and save it to a temporary path', function () {
             let nconf = nconf_factory({
                 extract: tmp_dir,
-                issue: "latest",
                 section: "Introduction",
                 proxy_url,
                 username,
                 password
             });
             this.timeout(DOWNLOAD_TIMEOUT);
-            return download(nconf, logs_factory()).then((code) => {
+            return download([null, "latest"], nconf, logs_factory()).then((code) => {
                 assert.equal(0, code, "Exit code was not zero");
             });
         });
@@ -326,7 +325,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
         this.timeout(GLOBAL_TIMEOUT);
         it('should retrieve the issues for a given year and exit with no error code', function () {
             this.timeout(60000);
-            return list_issues(nconf_factory({ year: (new Date()).getFullYear(), username, password, proxy_url }), logs_factory());
+            return list_issues([null, (new Date()).getFullYear()], nconf_factory({ username, password, proxy_url }), logs_factory());
         });
     });
 
@@ -334,7 +333,7 @@ describe('economist-audio-downloader [command] [arguments]', function () {
         this.timeout(GLOBAL_TIMEOUT);
         it('should retrieve the sections for a given issue and exit with no error code', function () {
             this.timeout(60000);
-            return list_issue_sections(nconf_factory({ issue: 'latest', username, password, proxy_url }), logs_factory());
+            return list_issue_sections([null, 'latest'], nconf_factory({ username, password, proxy_url }), logs_factory());
         });
     });
 });
