@@ -300,7 +300,7 @@ async function main () {
             });
     }, (argv) => {
         let args = argv._;
-        if (args[0] === 'download')
+        if (args.length > 1)
             args.shift();
         
         command = download.bind(null, argv._);
