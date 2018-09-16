@@ -25,10 +25,29 @@ const env_whitelist = [
     "ECONOMIST_USERNAME",
     "ECONOMIST_PASSWORD",
     "USERNAME",
+    "USER_AGENT",
     "PASSWORD",
     "PROXY_URL",
     "HTTP_PROXY"
 ];
+
+/**
+ * Converts a configuration property's name from env variable format to application config format
+ * `"CONTROL_HOST"` -> `"controlHost"` 
+ * @param {string} env - Environment variable
+ * @returns {string}
+ * @private
+ */
+function env_to_config(env) {
+	let a = env.toLowerCase().split('_');
+	i = 1;
+	while (i < a.length) {
+		a[i] = a[i][0].toUpperCase() + a[i].substr(1);
+		i++;
+	}
+	return a.join('');
+ }
+
 
 /**
  * Creates an {@link EconomistAudioDownloader} instance with the application configuration.
@@ -37,7 +56,7 @@ const env_whitelist = [
  * @private
  */
 function EADFactory(nconf) {
-    return new EconomistAudioDownloader({ username: nconf.get('username'), password: nconf.get('password') }, nconf.get('proxy_url'), nconf.get('user_agent'));
+    return new EconomistAudioDownloader({ username: nconf.get('username'), password: nconf.get('password') }, nconf.get('proxyUrl'), nconf.get('userAgent'));
 }
 
 /**
@@ -50,6 +69,7 @@ function EADFactory(nconf) {
  */
 async function login(nconf, logs, downloader) {
     if (!nconf.get('username') || !nconf.get('password')) {
+        logs.silent = false;
         logs.error("No username and/or password given");
         return 1;
     }
@@ -218,7 +238,7 @@ async function main () {
     .version(pkg.version)
     .usage('Usage: economist-audio-downloader [command] [arguments]')
     .strict()
-    .option('log_level', {
+    .option('logLevel', {
         alias: 'l',
         describe: 'Sets the verbosity of log output',
         default: 'info'
@@ -240,7 +260,7 @@ async function main () {
         alias: 'f',
         describe: 'A JSON configuration file to read from'
     })
-    .option('proxy_url', {
+    .option('proxyUrl', {
         alias: 'x',
         describe: 'The url to a proxy that will be used for all requests. SOCKS(4/5), HTTP(S) and PAC accepted.'
     })
@@ -296,7 +316,9 @@ async function main () {
             separator: '__',
             transform: (obj) => {
                 if (env_whitelist.includes(obj.key)) {
-                    obj.key = obj.key.toLowerCase().replace('economist_', '');
+                    if (obj.key.indexOf('_') !== -1) {
+                        obj.key = env_to_config(obj.key.toLowerCase().replace('economist_', ''));
+                    }
                 }
                 return obj;
             }
@@ -304,7 +326,7 @@ async function main () {
         .defaults(require('./default_config'));
 
     logs = winston.createLogger({
-        level: nconf.get('log_level'),
+        level: nconf.get('logLevel'),
         format: winston.format.simple(),
         silent: nconf.get('quiet'),
         transports: [

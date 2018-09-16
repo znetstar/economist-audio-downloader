@@ -1,7 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [1.0.4] - 2018-09-15
+## [1.0.5] - 2018-09-15
+
+### Changed
+- Config values are now camel case.
 
 ### Added
 - Adds documentation. To generate docs run `npm run docs`. They will be available under `docs/`.
