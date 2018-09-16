@@ -190,16 +190,18 @@ class EconomistClient {
                 })
             });
         } catch (error) {
-            if (!error.statusCode || !error.error) throw error;
+            try {
+                if (!error.statusCode || !error.error) throw error;
 
-            let status = error.statusCode
-            let errorObj = JSON.parse(error.error);
-            if (!errorObj.description) throw error;
-            
-            let descObj = JSON.parse(errorObj.description);
-            
-            if (!descObj.dev_message) throw error;
-            let errorMsg = descObj.dev_message;
+                let status = error.statusCode
+                let errorObj = JSON.parse(error.error);
+                if (!errorObj.description) throw error;
+                
+                let descObj = JSON.parse(errorObj.description);
+                
+                if (!descObj.dev_message) throw error;
+                let errorMsg = descObj.dev_message;
+            } catch (parseError) { throw error; }
             
             throw new Error(`HTTP ${status} - ${errorMsg}`);
         }

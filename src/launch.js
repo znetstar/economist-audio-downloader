@@ -146,7 +146,8 @@ async function list_issue_sections(argv, nconf, logs) {
 async function download(argv, nconf, logs) {
     let downloader = EADFactory(nconf);
 
-    let date = argv[1] || 'latest';
+    let date = argv[0] || 'latest';
+    console.log(argv)
 
     let section = nconf.get('section');
     let sectStr = section ? " section \"" + section + "\"" : "";
@@ -297,7 +298,11 @@ async function main () {
                 alias: 'b',
                 describe: 'Will extract to a subdirectory named the date of the issue (e.g. $extract/YYYY-MM-DD)'
             });
-    }, (argv) => { 
+    }, (argv) => {
+        let args = argv._;
+        if (args[0] === 'download')
+            args.shift();
+        
         command = download.bind(null, argv._);
      })
     .command('list-issues <year>', "Lists all issues for a given year", (yargs) => {
