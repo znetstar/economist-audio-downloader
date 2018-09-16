@@ -216,7 +216,7 @@ async function main () {
 
     const yargs = require('yargs')
     .version(pkg.version)
-    .usage('Usage: economist-image-downloader [command] [arguments]')
+    .usage('Usage: economist-audio-downloader [command] [arguments]')
     .strict()
     .option('log_level', {
         alias: 'l',
