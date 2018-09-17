@@ -4,7 +4,7 @@ const fs = require('fs');
 
 const {Provider} = require('nconf');
 const winston = require('winston');
-const unzip = require('unzip');
+const unzip = require('node-unzip-2');
 const fstream = require('fstream');
 const moment = require('moment');
 

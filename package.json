@@ -1,6 +1,6 @@
 {
   "name": "economist-audio-downloader",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "A tool to download the audio edition of The Economist from the command line",
   "main": "src/index.js",
   "scripts": {
@@ -24,11 +24,11 @@
     "lodash": "^4.17.10",
     "moment": "^2.22.2",
     "nconf": "^0.10.0",
+    "node-unzip-2": "^0.2.7",
     "proxy-agent": "^3.0.1",
     "qs": "^6.5.2",
     "request": "^2.88.0",
     "request-promise-any": "^1.0.5",
-    "unzip": "^0.1.11",
     "winston": "^3.1.0",
     "yargs": "^12.0.1"
   },
