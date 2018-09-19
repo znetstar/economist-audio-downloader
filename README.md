@@ -66,7 +66,7 @@ Example:
 
 ### Documentation
 
-To generate API documentation run `npm run docs`. An online version of the documentation [is available here](https://economist-audio-downloader.docs.zacharyboyd.nyc).
+To documentation is available under `docs/`. An online copy [is available here.](https://economist-audio-downloader.docs.zacharyboyd.nyc).
 
 ### Tests
 

@@ -4,4 +4,3 @@ node_modules
 .gitignore
 .git
 .travis.yml
-docs
